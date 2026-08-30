@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>स्मार्ट किराना बिलिंग & सिस्टम</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            margin: 0;
+            padding: 8px;
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: auto;
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        @media(min-width: 768px) {
+            .container { max-width: 950px; padding: 25px; border-radius: 16px; }
+            body { padding: 15px; }
+        }
+        h2, h3 { color: var(--primary); text-align: center; margin-top: 0; font-size: 1.25rem; }
+        .card { 
+            background: #f9fafb; 
+            border: 1px solid #e5e7eb; 
+            padding: 12px; 
+            border-radius: 10px; 
+            margin-bottom: 15px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .btn { 
+            padding: 10px 14px; 
+            font-size: 15px; 
+            font-weight: 600; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            color: white; 
+            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-success { background-color: var(--success); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-warning { background-color: var(--warning); color: #fff; }
+        .btn-primary { background-color: var(--primary); }
+        .btn-secondary { background-color: #6b7280; }
+        .btn-whatsapp { background-color: #25D366; color: #fff; }
+        .btn-call { background-color: #0ea5e9; color: #fff; }
+        .btn:disabled { background-color: #d1d5db !important; cursor: not-allowed; color: #9ca3af !important; }
+        
+        input, select, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 6px 0 10px 0; 
+            font-size: 15px; 
+            border: 2px solid #e5e7eb; 
+            border-radius: 8px; 
+            background: #fff;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; }
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; min-width: 400px; }
+        th, td { border: 1px solid #e5e7eb; padding: 10px 8px; text-align: center; font-size: 14px; }
+        th { background-color: var(--primary); color: white; }
+        .flex-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .flex-row > * { flex: 1 1 100%; }
+        @media(min-width: 600px) { .flex-row > * { flex: 1; } }
+        .hidden { display: none; }
+        
+        .header-bar { 
+            position: sticky; top: 0; background: #ffffff; z-index: 999; 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 2px solid #e5e7eb; padding: 10px 8px; margin-bottom: 15px; 
+            gap: 5px;
+        }
+        
+        .stock-btn-container { position: relative; display: inline-block; }
+        .stock-main-btn { background-color: var(--success); color: white; padding: 8px 12px; font-size: 14px; font-weight: bold; border: none; cursor: pointer; border-radius: 8px; width: auto; display: flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.15); white-space: nowrap; }
+        .stock-dropdown-content { display: none; position: absolute; left: 0; top: 100%; background-color: white; width: 260px; box-shadow: 0px 8px 20px rgba(0,0,0,0.2); z-index: 1000; border-radius: 8px; border: 1px solid #e5e7eb; max-height: 80vh; overflow-y: auto; margin-top: 4px; }
+        .stock-dropdown-content button { color: #374151; padding: 10px 14px; text-decoration: none; display: block; width: 100%; border: none; background: none; text-align: left; font-size: 14px; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
+        .stock-dropdown-content button:hover { background-color: #f3f4f6; color: var(--primary); }
+        .stock-show { display: block; }
+
+        .menu-container { position: relative; display: inline-block; }
+        .menu-btn { background-color: #4b5563; color: white; padding: 8px 12px; font-size: 16px; border: none; cursor: pointer; border-radius: 8px; width: auto; white-space: nowrap; }
+        .menu-content { display: none; position: absolute; right: 0; top: 100%; background-color: white; width: 260px; box-shadow: 0px 8px 20px rgba(0,0,0,0.2); z-index: 1000; border-radius: 8px; border: 1px solid #e5e7eb; max-height: 80vh; overflow-y: auto; margin-top: 4px; }
+        .menu-content button, .menu-content a { color: #374151; padding: 12px 16px; text-decoration: none; display: block; width: 100%; border: none; background: none; text-align: left; font-size: 15px; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
+        .menu-content button:hover, .menu-content a:hover { background-color: #f3f4f6; color: var(--primary); }
+        .show { display: block; }
+
+        .tab-section { display: none; }
+        .tab-section.active { display: block; }
+        #scanner-container { width: 100%; margin: 10px auto; display: none; }
+        #reader { width: 100% !important; }
+        
+        .suggestions-box {
+            position: absolute;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            width: calc(100% - 24px);
+            z-index: 99;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            text-align: left;
+        }
+        .suggestion-item:hover {
+            background-color: #eef2ff;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printableBillArea, #printableBillArea * { visibility: visible; }
+            #printableBillArea { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 5px; background: #fff; }
+        }
+        .bill-receipt-box {
+            background: #fff;
+            border: 2px dashed #cbd5e1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loginSection" class="card" style="background: linear-gradient(to bottom, #ffffff, #f8fafc); margin-top: 20px;">
+        <h2>🔐 दुकान सुरक्षा & लॉगिन / रजिस्टर</h2>
+        <p style="text-align: center; color: #6b7280; font-size: 14px;">ड्राइवर आईडी, पासवर्ड और मोबाइल नंबर दर्ज करें</p>
+        
+        <label><b>ड्राइवर आईडी (Driver ID):</b></label>
+        <input type="text" id="driverIdInput" placeholder="जैसे: abc">
+        
+        <label><b>पासवर्ड (Password):</b></label>
+        <input type="password" id="passInput" placeholder="पासवर्ड दर्ज करें">
+
+        <label><b>मोबाइल नंबर (Mobile Number):</b></label>
+        <input type="tel" id="mobileInput" placeholder="10 अंकों का मोबाइल नंबर">
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" style="flex:1; min-width: 120px;" onclick="verifyOnlineLogin()">लॉगिन करें</button>
+            <button class="btn btn-success" style="flex:1; min-width: 120px;" onclick="registerNewDriver()">नया रजिस्ट्रेशन</button>
+        </div>
+
+        <div style="margin-top: 10px; text-align: right;">
+            <button type="button" style="background:none; border:none; color:var(--primary); text-decoration:underline; cursor:pointer; font-size:14px;" onclick="forgotPassword()">पासवर्ड भूल गए?</button>
+        </div>
+
+        <p id="loginStatusMsg" style="color: var(--danger); text-align: center; font-weight: bold; margin-top: 15px; font-size: 14px;"></p>
+    </div>
+
+    <div id="appSection" class="hidden">
+        <div class="header-bar">
+            <div class="stock-btn-container">
+                <button onclick="toggleStockMenu()" class="stock-main-btn">📦 मेनू विकल्पों ▼</button>
+                <div id="stockDropdownMenu" class="stock-dropdown-content">
+                    <button onclick="switchTab('masterTab')">➕ सिंगल प्रोडक्ट जोड़ें</button>
+                    <button onclick="switchTab('inventoryTab')">📝 फुल प्रोडक्ट लिस्ट</button>
+                    <button onclick="switchTab('quickRateEditTab')" style="color: var(--success); font-weight: bold;">⚡ रेट क्विक एडिट</button>
+                    <button onclick="switchTab('shortStockTab')">⚠️ शॉर्टेड स्टॉक</button>
+                    <button onclick="switchTab('bulkUploadTab')">📂 एक्सेल से प्रोडक्ट्स डंप</button>
+                    <button onclick="toggleStockMenu()" style="color: var(--danger); background: #fee2e2; font-weight: bold; text-align: center;">✕ मेनू बंद करें</button>
+                </div>
+            </div>
+
+            <div style="flex: 1; text-align: center; overflow: hidden; padding: 0 4px;">
+                <h2 id="shopTitleHeader" style="margin: 0; color: var(--primary); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🛒 किराना स्मार्ट सिस्टम</h2>
+            </div>
+
+            <div style="display: flex; gap: 4px; align-items: center;">
+                <div class="menu-container">
+                    <button onclick="toggleMenu()" class="menu-btn">☰</button>
+                    <div id="threeDotMenu" class="menu-content">
+                        <button onclick="switchTab('billingTab')">🧾 बिलिंग काउंटर</button>
+                        <button onclick="switchTab('customerMasterTab')">👥 कस्टमर डायरेक्टरी</button>
+                        <button onclick="switchTab('customerPurchaseHistoryTab')" style="color: var(--warning);">🛍️ ग्राहक खरीद इतिहास & एडिट</button>
+                        <button onclick="switchTab('productQtySumTab')" style="color: var(--success); font-weight: bold;">📊 कुल उत्पाद मात्रा गणना</button>
+                        <button onclick="switchTab('sellingReportTab')" style="color: var(--primary);">📄 सेलिंग रिपोर्ट</button>
+                        <button onclick="switchTab('settingsTab')">⚙️ सेटिंग्स & बैकअप</button>
+                        <button onclick="switchTab('reportsTab')">📊 रिपोर्ट्स & लाभ</button>
+                        <button onclick="toggleMenu()" style="color: var(--danger); background: #fee2e2; font-weight: bold; text-align: center;">✕ मेनू बंद करें</button>
+                    </div>
+                </div>
+                <button onclick="logout()" class="btn btn-danger" style="width: auto; padding: 8px 10px; font-size: 13px;" title="लॉग-आउट">🔒</button>
+            </div>
+        </div>
+
+        <div id="billingTab" class="tab-section active">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0;">🧾 बिलिंग काउंटर</h3>
+                    <button class="btn btn-warning" style="width: auto; padding: 6px 12px; font-size: 13px;" onclick="refreshBillingCounter()">🔄 रिफ्रेश / नया बिल</button>
+                </div>
+
+                <div style="background: #f0fdf4; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #bbf7d0;">
+                    <label style="font-size: 13px; color: var(--success); font-weight: bold;">🪙 खुला सामान / फुटकर राशि (क्लिक करें):</label>
+                    <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+                        <button class="btn btn-success" style="flex: 1; padding: 8px; min-width: 50px;" onclick="addLooseItem(1)">₹1</button>
+                        <button class="btn btn-success" style="flex: 1; padding: 8px; min-width: 50px;" onclick="addLooseItem(2)">₹2</button>
+                        <button class="btn btn-success" style="flex: 1; padding: 8px; min-width: 50px;" onclick="addLooseItem(5)">₹5</button>
+                        <button class="btn btn-success" style="flex: 1; padding: 8px; min-width: 50px;" onclick="addLooseItem(10)">₹10</button>
+                        <button class="btn btn-success" style="flex: 1; padding: 8px; min-width: 50px;" onclick="addLooseItem(20)">₹20</button>
+                    </div>
+                </div>
+
+                <div style="background: #eef2ff; padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #c7d2fe;">
+                    <label style="font-size: 13px; color: var(--primary); font-weight: bold;">👤 ग्राहक का विवरण:</label>
+                    <div class="flex-row" style="margin-top: 5px;">
+                        <div style="position: relative;">
+                            <input type="text" id="custName" placeholder="ग्राहक का नाम..." style="margin:0;" oninput="handleCustNameSearch()">
+                            <div id="custNameSuggestionsBox" class="suggestions-box hidden"></div>
+                        </div>
+                        <div style="position: relative;">
+                            <input type="tel" id="custPhone" placeholder="मोबाइल नंबर..." style="margin:0;" oninput="handleCustPhoneSearch()">
+                            <div id="custPhoneSuggestionsBox" class="suggestions-box hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-row" style="margin-top:5px;">
+                    <div>
+                        <label style="font-size: 13px;"><b>कैटेगरी चुनें:</b></label>
+                        <select id="billCategorySelect" onchange="filterProductsByCategory()">
+                            <option value="ALL">-- सभी कैटेगरीज --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 13px;"><b>यूनिक बारकोड (ऑटोमैटिक स्कैन):</b></label>
+                        <div style="display: flex; gap: 6px; align-items: center; margin: 0;">
+                            <input type="text" id="barcodeScanInput" placeholder="🔍 बारकोड टाइप करें या स्कैन करें..." oninput="handleBarcodeSearchInput()" onkeydown="handleBarcodeSearchKey(event)" style="margin:0; flex:1;">
+                            <button class="btn btn-secondary" style="padding: 10px; width: auto;" onclick="startCameraScanner('barcodeScanInput')">📷</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 10px; position: relative;">
+                    <label style="font-size: 13px;"><b>🔍 नाम से खोजें:</b></label>
+                    <input type="text" id="nameSearchInput" placeholder="सामान का नाम टाइप करें..." oninput="handleNameSearchInput()" style="margin:0;">
+                    <div id="nameSuggestionsBox" class="suggestions-box hidden"></div>
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <label style="font-size: 13px;"><b>चयनित सामान:</b></label>
+                    <select id="billProductSelect" onchange="fillBillDetails()">
+                        <option value="">-- सामान चुनें --</option>
+                    </select>
+                </div>
+
+                <div class="flex-row" style="margin-top:5px; align-items: flex-end;">
+                    <div>
+                        <label style="font-size:12px;">मात्रा (Qty)</label>
+                        <div style="display: flex; gap: 4px; align-items: center; margin: 6px 0 10px 0;">
+                            <button type="button" class="btn btn-danger" style="padding: 10px; width: 40px;" onclick="adjustBillQty(-1)">-</button>
+                            <input type="number" id="billQty" value="1" step="0.001" style="margin:0; text-align: center;">
+                            <button type="button" class="btn btn-success" style="padding: 10px; width: 40px;" onclick="adjustBillQty(1)">+</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:12px;">यूनिट</label>
+                        <select id="billUnit">
+                            <option value="Kg">Kg</option><option value="Packet">Packet</option><option value="Piece">Piece</option><option value="Gram">Gram</option><option value="Liter">Liter</option>
+                        </select>
+                    </div>
+                    <div><label style="font-size:12px;">बिक्री रेट (₹)</label><input type="number" id="billPrice" placeholder="दाम (₹)"></div>
+                </div>
+                
+                <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="addToBill()">➕ बिल में सामान जोड़ें</button>
+            </div>
+
+            <div class="card">
+                <h3>वर्तमान बिल की सूची</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>सामान</th><th>मात्रा</th><th>रेट</th><th>कुल</th><th>हटाएं</th></tr></thead>
+                        <tbody id="billTableBody"></tbody>
+                    </table>
+                </div>
+                <h3 style="text-align: right; margin-top:15px; color: var(--success);">कुल योग: ₹<span id="grandTotal">0</span></h3>
+                
+                <div style="margin-top: 15px;">
+                    <label style="font-size: 13px; font-weight: bold; color: var(--primary);">📝 बिल संदेश / कस्टमाइज़ेशन:</label>
+                    <textarea id="customBillNoteText" rows="3" style="font-size: 13px;"></textarea>
+                </div>
+
+                <div class="flex-row" style="margin-top: 12px;">
+                    <button class="btn btn-success" onclick="saveAndProcessBill('save')">💾 सेव करें</button>
+                    <button class="btn btn-primary" onclick="saveAndProcessBill('print')">🖨️ सेव & प्रिंट</button>
+                    <button class="btn btn-whatsapp" onclick="saveAndProcessBill('whatsapp')">🟢 WhatsApp बिल</button>
+                    <button class="btn btn-warning" onclick="saveAndProcessBill('message')">💬 मैसेज पर भेजें</button>
+                </div>
+            </div>
+
+            <div id="printableBillArea" class="bill-receipt-box hidden">
+                <div style="text-align: center;">
+                    <h2 id="receiptShopName" style="margin:0; font-size:18px; color:#000;">किराना स्मार्ट स्टोर</h2>
+                    <p style="margin:2px 0; font-size:12px;">धन्यवाद! पधारें दोबारा</p>
+                </div>
+                <hr style="border: 1px dashed #000; margin: 10px 0;">
+                <div style="font-size: 13px;">
+                    <div><b>दिनांक:</b> <span id="receiptDate"></span></div>
+                    <div><b>ग्राहक:</b> <span id="receiptCustName"></span></div>
+                    <div><b>मोबाइल:</b> <span id="receiptCustPhone"></span></div>
+                </div>
+                <hr style="border: 1px dashed #000; margin: 10px 0;">
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #000;">
+                            <th style="background:none; color:#000; text-align:left; padding:4px;">आइटम</th>
+                            <th style="background:none; color:#000; text-align:center; padding:4px;">मात्रा</th>
+                            <th style="background:none; color:#000; text-align:right; padding:4px;">कुल (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receiptItemsBody"></tbody>
+                </table>
+                <hr style="border: 1px dashed #000; margin: 10px 0;">
+                <div style="text-align: right; font-size: 14px; font-weight: bold;">
+                    कुल योग: ₹<span id="receiptGrandTotal">0</span>
+                </div>
+                <hr style="border: 1px dashed #000; margin: 10px 0;">
+                <div id="receiptCustomNote" style="text-align: center; font-size: 12px; white-space: pre-wrap; margin-top: 10px;"></div>
+            </div>
+        </div>
+
+        <div id="customerMasterTab" class="tab-section">
+            <div class="card">
+                <h3>👥 कस्टमर डायरेक्टरी</h3>
+                <div class="flex-row" style="margin-bottom: 10px;">
+                    <input type="text" id="searchCustomerInput" placeholder="🔍 नाम या मोबाइल से खोजें..." onkeyup="renderCustomerDirectory()" style="margin:0; width:100%;">
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>नाम</th>
+                                <th>मोबाइल नंबर</th>
+                                <th>WhatsApp</th>
+                                <th>कॉल (Call)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="customerPurchaseHistoryTab" class="tab-section">
+            <div class="card">
+                <h3>🛍️ ग्राहक खरीद इतिहास & बिल एडिट</h3>
+                <p style="font-size:12px; color:#6b7280;">यहाँ से आप किसी भी ग्राहक के पुराने बिल देख सकते हैं। यदि सेलिंग रिपोर्ट से कोई बिल डिलीट किया गया है, तो वह यहाँ लाल रंग में दिखेगा और आप चाहें तो यहाँ से भी उसे डिलीट कर सकते हैं।</p>
+                <div class="flex-row" style="margin-bottom: 10px;">
+                    <input type="text" id="searchCustHistoryInput" placeholder="🔍 ग्राहक का नाम या मोबाइल नंबर से खोजें..." onkeyup="renderCustomerPurchaseHistory()" style="margin:0; flex:2;">
+                    <button class="btn btn-primary" onclick="exportCustomerPurchaseHistoryToExcel()" style="margin:0; flex:1;">📥 एक्सेल डाउनलोड</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>दिनांक/समय</th>
+                                <th>ग्राहक का नाम</th>
+                                <th>मोबाइल नंबर</th>
+                                <th>खरीदे गए सामान विवरण</th>
+                                <th>कुल राशि (₹)</th>
+                                <th>एक्शन (Edit / Delete / WhatsApp / SMS)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerPurchaseHistoryTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="productQtySumTab" class="tab-section">
+            <div class="card">
+                <h3>📊 सभी उत्पादों की कुल मात्रा और मूल्य गणना</h3>
+                <p style="font-size:12px; color:#6b7280;">यहाँ केवल वैध (सेलिंग रिपोर्ट में मौजूद) बिके हुए उत्पादों की कुल मात्रा और मूल्य दिखाई देते हैं।</p>
+                
+                <div style="background:#eef2ff; padding:12px; border-radius:8px; text-align:right; margin-bottom:10px; border:1px solid #c7d2fe;">
+                    <h4 style="margin:0; color:var(--primary);">समग्र कुल योग: ₹<span id="sumTotalGrandPrice">0</span></h4>
+                </div>
+
+                <div class="flex-row" style="margin-bottom: 10px;">
+                    <input type="text" id="searchProductSumInput" placeholder="🔍 उत्पाद का नाम खोजें..." onkeyup="renderProductQtySumTable()" style="margin:0; flex:2;">
+                    <button class="btn btn-primary" onclick="exportProductQtySumToExcel()" style="margin:0; flex:1;">📥 एक्सेल डाउनलोड</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>उत्पाद का नाम</th>
+                                <th>कुल मात्रा (Total Qty)</th>
+                                <th>इकाई (Unit)</th>
+                                <th>कुल मूल्य (Total Price ₹)</th>
+                                <th>एक्शन (डिलीट)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productQtySumTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="sellingReportTab" class="tab-section">
+            <div class="card">
+                <h3>📄 सेलिंग रिपोर्ट (बिक्री इतिहास & डिलीट ऑप्शन)</h3>
+                <div class="flex-row" style="margin-bottom: 10px; align-items: center;">
+                    <div>
+                        <label style="font-size:12px;"><b>प्रारंभ तिथि (From):</b></label>
+                        <input type="date" id="reportStartDate" onchange="renderSellingReport()" style="margin:0;">
+                    </div>
+                    <div>
+                        <label style="font-size:12px;"><b>अंतिम तिथि (To):</b></label>
+                        <input type="date" id="reportEndDate" onchange="renderSellingReport()" style="margin:0;">
+                    </div>
+                </div>
+                <div class="flex-row" style="margin-bottom: 10px;">
+                    <button class="btn btn-primary" onclick="exportSellingReportToExcel()" style="flex:1;">📥 एक्सेल डाउनलोड</button>
+                    <button class="btn btn-danger" onclick="clearSalesHistory()" style="flex:1;">सभी बिक्री रिपोर्ट साफ़ करें</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>दिनांक/समय</th><th>ग्राहक</th><th>मोबाइल</th><th>कुल राशि (₹)</th><th>एक्शन (डिलीट)</th></tr></thead>
+                        <tbody id="salesReportTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="shortStockTab" class="tab-section">
+            <div class="card">
+                <h3>⚠️ शॉर्टेड / कम स्टॉक वाले प्रोडक्ट्स (< 5)</h3>
+                <button class="btn btn-primary" style="margin-bottom: 10px;" onclick="exportShortStockToExcel()">📥 एक्सेल डाउनलोड</button>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>बारकोड / सीरियल</th><th>नाम</th><th>उपलब्धता</th><th>रेट</th></tr></thead>
+                        <tbody id="shortStockTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="quickRateEditTab" class="tab-section">
+            <div class="card">
+                <h3>⚡ रेट क्विक एडिट</h3>
+                <div class="flex-row" style="margin-bottom: 10px;">
+                    <input type="text" id="quickRateSearchInput" placeholder="🔍 खोजें..." onkeyup="renderQuickRateTable()" style="margin:0; flex:2;">
+                    <button class="btn btn-primary" onclick="exportQuickRateToExcel()" style="margin:0; flex:1;">📥 एक्सेल डाउनलोड</button>
+                    <button class="btn btn-success" onclick="saveAllQuickRates()" style="margin:0; flex:1;">💾 All Save (सब सेव)</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>कोड/सीरियल</th><th>नाम</th><th>खरीद रेट (₹)</th><th>बिक्री रेट (₹)</th><th>एक्शन</th></tr></thead>
+                        <tbody id="quickRateTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="bulkUploadTab" class="tab-section">
+            <div class="card">
+                <h3>📂 एक्सेल / CSV से प्रोडक्ट्स डंप करें</h3>
+                <p style="font-size:13px; color:#6b7280;">
+                    <b>क्रम नियम:</b> 1st: Barcode/Serial, 2nd: Name, 3rd: Purchase Price, 4th: Selling Price, 5th: Unit, 6th: Category, 7th: Qty
+                </p>
+                <div style="margin-bottom: 12px;">
+                    <label><b>📥 एक्सेल / CSV फाइल अपलोड करें:</b></label>
+                    <input type="file" id="excelFile" accept=".csv, .txt" onchange="handleExcelFileUpload(event)">
+                </div>
+                <textarea id="bulkDataInput" rows="6" placeholder="SN001, आइटम नाम, 38, 42, Piece, कैटेगिरी, 10"></textarea>
+                <button class="btn btn-primary" onclick="processBulkUpload()">मैनुअल डेटा इम्पोर्ट करें</button>
+            </div>
+        </div>
+
+        <div id="masterTab" class="tab-section">
+            <div class="card">
+                <h3>➕ नया सिंगल प्रोडक्ट जोड़ें</h3>
+                <label>बारकोड / सीरियल नंबर:</label>
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="newProdBarcode" placeholder="बार्कोड नंबर..." style="margin:0; flex:1;">
+                    <button class="btn btn-secondary" style="padding:10px; width:auto;" onclick="startCameraScanner('newProdBarcode')">📷</button>
+                </div>
+
+                <label>प्रोडक्ट का नाम:</label>
+                <input type="text" id="newProdName" placeholder="जैसे: आइटम का नाम">
+                
+                <div class="flex-row">
+                    <div><label>खरीद मूल्य (Purchase ₹):</label><input type="number" id="newProdCost" placeholder="खरीद मूल्य"></div>
+                    <div><label>बिक्री मूल्य (Selling ₹):</label><input type="number" id="newProdPrice" placeholder="विक्री मूल्य"></div>
+                </div>
+
+                <div class="flex-row">
+                    <div><label>प्रारंभिक मात्रा:</label><input type="number" id="newProdQty" value="1" step="0.001"></div>
+                    <div>
+                        <label>यूनिट:</label>
+                        <select id="newProdUnit">
+                            <option value="Piece">Piece</option><option value="Kg">Kg</option><option value="Packet">Packet</option><option value="Gram">Gram</option><option value="Liter">Liter</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>कैटेगिरी:</label>
+                <select id="newProdCategory"></select>
+
+                <button class="btn btn-success" style="margin-top:15px;" onclick="saveSingleProduct()">प्रोडक्ट सेव करें</button>
+            </div>
+        </div>
+
+        <div id="inventoryTab" class="tab-section">
+            <div class="card">
+                <h3>📝 फुल प्रोडक्ट लिस्ट</h3>
+                <div class="flex-row" style="margin-bottom:10px;">
+                    <input type="text" id="inventorySearchInput" placeholder="🔍 खोजें..." onkeyup="renderInventoryTable()" style="margin:0; flex:2;">
+                    <button class="btn btn-success" onclick="saveAllInventoryChanges()" style="margin:0; flex:1;">💾 सब सेव करें</button>
+                </div>
+                <div class="flex-row" style="margin-bottom:10px;">
+                    <button class="btn btn-primary" onclick="exportProductsToExcel()" style="flex:1;">📥 एक्सेल डाउनलोड करें</button>
+                    <button class="btn btn-danger" onclick="deleteAllProducts()" style="flex:1;">🗑️ सब डिलीट करें</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>बारकोड / यूनिक आईडी</th>
+                                <th>नाम</th>
+                                <th>खरीद मूल्य</th>
+                                <th>बिक्री मूल्य</th>
+                                <th>मात्रा</th>
+                                <th>यूनिट</th>
+                                <th>एक्शन</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsTab" class="tab-section">
+            <div class="card">
+                <h3>⚙️ सेटिंग्स, बिल फॉर्मेट & बैकअप</h3>
+                <label>दुकान का नाम:</label>
+                <input type="text" id="settingShopName" placeholder="दुकान का नाम">
+
+                <label style="margin-top: 10px;"><b>🖨️ प्रिंट पेज साइज (Page Size):</b></label>
+                <select id="settingPageSize">
+                    <option value="thermal58">थर्मल 58mm (छोटा रसीद रोल)</option>
+                    <option value="thermal80">थर्मल 80mm / 85mm (स्टैंडर्ड रसीद रोल)</option>
+                    <option value="A5">A5 साइज (हाफ पेज)</option>
+                    <option value="A4">A4 साइज (फुल पेज)</option>
+                </select>
+
+                <label style="margin-top: 10px;">डिफ़ॉल्ट बिल नोट / फॉर्मेट संदेश:</label>
+                <textarea id="settingDefaultBillNote" rows="3" placeholder="धन्यवाद! पधारें दोबारा..."></textarea>
+
+                <button class="btn btn-primary" style="margin-top: 10px;" onclick="saveSettingsData()">सेटिंग्स सेव करें</button>
+
+                <hr style="margin: 20px 0;">
+                <h4>🗂️ कैटेगरीज मैनेजमेंट (देखें, जोड़ें व डिलीट करें)</h4>
+                <div class="flex-row">
+                    <input type="text" id="newCategoryInput" placeholder="नई कैटेगरी का नाम..." style="margin:0; flex:2;">
+                    <button class="btn btn-success" onclick="addNewCategory()" style="margin:0; flex:1;">➕ कैटेगरी जोड़ें</button>
+                </div>
+                <div id="categoryTagsContainer" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;"></div>
+
+                <hr style="margin: 20px 0;">
+                <h4>📥 बैकअप डाउनलोड & 📤 अपलोड (Restore)</h4>
+                <div class="flex-row">
+                    <button class="btn btn-secondary" onclick="exportDataJSON()" style="flex:1;">📥 बैकअप डाउनलोड करें</button>
+                    <label class="btn btn-primary" style="flex:1; margin:0; line-height:35px; cursor:pointer;">
+                        📤 बैकअप अपलोड करें <input type="file" id="importFile" accept=".json" onchange="importDataJSON(event)" style="display:none;">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div id="reportsTab" class="tab-section">
+            <div class="card">
+                <h3>📊 कुल लाभ (Profit) & रिपोर्ट्स</h3>
+                <div style="background:#eef2ff; padding:15px; border-radius:8px; text-align:center; margin-bottom:15px;">
+                    <h4 style="margin:0; color:var(--primary);">कुल शुद्ध मुनाफा (Total Net Profit Earned)</h4>
+                    <h2 style="color:var(--success); margin:10px 0 0 0;" id="totalProfitDisplay">₹0</h2>
+                </div>
+                <button class="btn btn-primary" style="margin-bottom: 10px;" onclick="exportProfitReportToExcel()">📥 एक्सेल डाउनलोड</button>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>बेचा गया सामान</th><th>मात्रा</th><th>कुल बिक्री</th><th>शुद्ध लाभ</th><th>एक्शन (डिलीट)</th></tr></thead>
+                        <tbody id="profitReportTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="scanner-container" class="card">
+            <div id="reader"></div>
+            <button class="btn btn-danger" style="width:100%; margin-top:10px;" onclick="stopCameraScanner()">स्कैनर बंद करें</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7DRH5DzXkH9vb735Pa5yyXiqk3sgqf9ztLx4eQl_yRI9INvvaQhK50LtcqP0fQ5l2BA/exec";
+    let deviceId = localStorage.getItem('deviceId') || ('DEV_' + Math.random().toString(36).substr(2, 9));
+    localStorage.setItem('deviceId', deviceId);
+
+    let shopSettings = JSON.parse(localStorage.getItem('shopSettings')) || {
+        shopName: "किराना स्मार्ट स्टोर",
+        defaultBillNote: "धन्यवाद! कृपया पधारें।\nमाल वापस करने की अवधि: 3 दिन (बिल के साथ)।",
+        categories: ["दाल-चावल", "तेल-मसाला", "डेयरी", "स्नैक्स", "अन्य"],
+        pageSize: "thermal80"
+    };
+
+    let productList = JSON.parse(localStorage.getItem('masterProductList')) || [];
+    let salesHistory = JSON.parse(localStorage.getItem('salesHistoryList')) || [];
+    let customerMasterList = JSON.parse(localStorage.getItem('customerMasterList')) || [];
+    let customerPurchaseHistory = JSON.parse(localStorage.getItem('customerPurchaseHistoryList')) || [];
+    let currentBillItems = [];
+    let editingSaleIndex = null;
+
+    window.onload = function() {
+        if(localStorage.getItem('isLoggedIn') === 'true') {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            initApp();
+        }
+    }
+
+    function initApp() {
+        document.getElementById('shopTitleHeader').innerText = "🛒 " + shopSettings.shopName;
+        document.getElementById('settingShopName').value = shopSettings.shopName;
+        document.getElementById('settingDefaultBillNote').value = shopSettings.defaultBillNote || "";
+        if(document.getElementById('settingPageSize')) {
+            document.getElementById('settingPageSize').value = shopSettings.pageSize || "thermal80";
+        }
+        document.getElementById('customBillNoteText').value = shopSettings.defaultBillNote || "";
+        refreshAllDropdowns();
+        renderCategoryManager();
+    }
+
+    async function verifyOnlineLogin() {
+        const driverId = document.getElementById('driverIdInput').value.trim();
+        const password = document.getElementById('passInput').value.trim();
+        const msgBox = document.getElementById('loginStatusMsg');
+        if(!driverId || !password) {
+            msgBox.innerText = "कृपया ड्राइवर आईडी और पासवर्ड भरें!";
+            return;
+        }
+        msgBox.innerText = "लॉगिन जाँच हो रही है...";
+        try {
+            let res = await fetch(`${SCRIPT_URL}?action=login&driverId=${encodeURIComponent(driverId)}&password=${encodeURIComponent(password)}&deviceId=${encodeURIComponent(deviceId)}`);
+            let result = await res.json();
+            if(result.status === "success") {
+                localStorage.setItem('isLoggedIn', 'true');
+                if(result.shopName) shopSettings.shopName = result.shopName;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('appSection').classList.remove('hidden');
+                initApp();
+            } else {
+                msgBox.innerText = result.message;
+            }
+        } catch (e) {
+            localStorage.setItem('isLoggedIn', 'true');
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            initApp();
+        }
+    }
+
+    async function registerNewDriver() {
+        const driverId = document.getElementById('driverIdInput').value.trim();
+        const password = document.getElementById('passInput').value.trim();
+        const mobile = document.getElementById('mobileInput').value.trim();
+        const msgBox = document.getElementById('loginStatusMsg');
+        if(!driverId || !password || !mobile) {
+            msgBox.innerText = "सभी विवरण भरें!";
+            return;
+        }
+        try {
+            let res = await fetch(`${SCRIPT_URL}?action=register&driverId=${encodeURIComponent(driverId)}&password=${encodeURIComponent(password)}&mobile=${encodeURIComponent(mobile)}&shopName=${encodeURIComponent(shopSettings.shopName)}`);
+            let result = await res.json();
+            msgBox.style.color = result.status === "success" ? "var(--success)" : "var(--danger)";
+            msgBox.innerText = result.message;
+        } catch (e) {
+            msgBox.innerText = "रजिस्ट्रेशन सफल (ऑफ़लाइन मोड)!";
+            localStorage.setItem('isLoggedIn', 'true');
+            setTimeout(() => location.reload(), 1000);
+        }
+    }
+
+    async function forgotPassword() {
+        const driverId = document.getElementById('driverIdInput').value.trim();
+        const mobile = document.getElementById('mobileInput').value.trim();
+        const msgBox = document.getElementById('loginStatusMsg');
+        if(!driverId || !mobile) {
+            msgBox.innerText = "आईडी और मोबाइल नंबर दर्ज करें!";
+            return;
+        }
+        try {
+            let res = await fetch(`${SCRIPT_URL}?action=forgotPassword&driverId=${encodeURIComponent(driverId)}&mobile=${encodeURIComponent(mobile)}`);
+            let result = await res.json();
+            msgBox.style.color = result.status === "success" ? "var(--success)" : "var(--danger)";
+            msgBox.innerText = result.message;
+        } catch(e) {
+            msgBox.innerText = "नेटवर्क त्रुटि!";
+        }
+    }
+
+    function logout() {
+        if(confirm("क्या आप वाकई लॉग-आउट करना चाहते हैं?")) {
+            localStorage.removeItem('isLoggedIn');
+            location.reload();
+        }
+    }
+
+    function toggleMenu() {
+        document.getElementById("threeDotMenu").classList.toggle("show");
+        document.getElementById("stockDropdownMenu").classList.remove("stock-show");
+    }
+
+    function toggleStockMenu() {
+        document.getElementById("stockDropdownMenu").classList.toggle("stock-show");
+        document.getElementById("threeDotMenu").classList.remove("show");
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById("threeDotMenu").classList.remove("show");
+        document.getElementById("stockDropdownMenu").classList.remove("stock-show");
+        if(tabId === 'inventoryTab') renderInventoryTable();
+        if(tabId === 'quickRateEditTab') renderQuickRateTable();
+        if(tabId === 'customerMasterTab') renderCustomerDirectory();
+        if(tabId === 'customerPurchaseHistoryTab') renderCustomerPurchaseHistory();
+        if(tabId === 'productQtySumTab') renderProductQtySumTable();
+        if(tabId === 'sellingReportTab') renderSellingReport();
+        if(tabId === 'shortStockTab') renderShortStockTable();
+        if(tabId === 'reportsTab') renderProfitReport();
+        if(tabId === 'settingsTab') renderCategoryManager();
+    }
+
+    function refreshAllDropdowns() {
+        const catSelects = [document.getElementById('billCategorySelect'), document.getElementById('newProdCategory')];
+        catSelects.forEach(sel => {
+            if(!sel) return;
+            let currentVal = sel.value;
+            sel.innerHTML = sel.id === 'billCategorySelect' ? '<option value="ALL">-- सभी कैटेगरीज --</option>' : '';
+            shopSettings.categories.forEach(cat => {
+                sel.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+            if(currentVal) sel.value = currentVal;
+        });
+        updateProductDropdowns();
+    }
+
+    function updateProductDropdowns() {
+        const billSelect = document.getElementById('billProductSelect');
+        const selectedCategory = document.getElementById('billCategorySelect') ? document.getElementById('billCategorySelect').value : 'ALL';
+
+        if(billSelect) {
+            billSelect.innerHTML = '<option value="">-- सामान चुनें --</option>';
+            productList.forEach((item, index) => {
+                if(selectedCategory === 'ALL' || item.category === selectedCategory) {
+                    billSelect.innerHTML += `<option value="${index}">${item.name} (₹${item.price})</option>`;
+                }
+            });
+        }
+    }
+
+    function filterProductsByCategory() {
+        updateProductDropdowns();
+    }
+
+    function addLooseItem(amount) {
+        currentBillItems.push({
+            name: "खुला सामान",
+            qty: 1,
+            unit: "Piece",
+            price: amount,
+            total: amount,
+            productIndex: null
+        });
+        renderBillTable();
+    }
+
+    function fillBillDetails() {
+        const index = document.getElementById('billProductSelect').value;
+        if(index === "") return;
+        const prod = productList[index];
+        document.getElementById('billPrice').value = prod.price;
+        document.getElementById('billQty').value = 1;
+        document.getElementById('billUnit').value = prod.unit || "Piece";
+    }
+
+    function adjustBillQty(val) {
+        let qtyInput = document.getElementById('billQty');
+        let current = parseFloat(qtyInput.value) || 0;
+        let res = current + val;
+        if(res < 0.001) res = 0.001;
+        qtyInput.value = res;
+    }
+
+    function addToBill() {
+        const index = document.getElementById('billProductSelect').value;
+        const qty = parseFloat(document.getElementById('billQty').value);
+        const price = parseFloat(document.getElementById('billPrice').value);
+        const unit = document.getElementById('billUnit').value;
+
+        if(index === "" || isNaN(qty) || isNaN(price)) {
+            alert("कृपया सही सामान और मूल्य चुनें!");
+            return;
+        }
+
+        const prod = productList[index];
+        let total = qty * price;
+
+        currentBillItems.push({
+            name: prod.name,
+            qty: qty,
+            unit: unit,
+            price: price,
+            total: total,
+            productIndex: parseInt(index)
+        });
+
+        renderBillTable();
+        document.getElementById('billProductSelect').value = "";
+        document.getElementById('billQty').value = 1;
+        document.getElementById('billPrice').value = "";
+        document.getElementById('nameSearchInput').value = "";
+        document.getElementById('barcodeScanInput').value = "";
+    }
+
+    function renderBillTable() {
+        const tbody = document.getElementById('billTableBody');
+        tbody.innerHTML = "";
+        let grandTotal = 0;
+
+        currentBillItems.forEach((item, index) => {
+            grandTotal += item.total;
+            tbody.innerHTML += `
+                <tr>
+                    <td style="text-align:left;">${item.name}</td>
+                    <td>${item.qty} ${item.unit}</td>
+                    <td>₹${item.price}</td>
+                    <td><b>₹${item.total.toFixed(2)}</b></td>
+                    <td><button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="removeBillItem(${index})">❌</button></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
+    }
+
+    function removeBillItem(index) {
+        currentBillItems.splice(index, 1);
+        renderBillTable();
+    }
+
+    function refreshBillingCounter() {
+        currentBillItems = [];
+        editingSaleIndex = null;
+        document.getElementById('custName').value = "";
+        document.getElementById('custPhone').value = "";
+        document.getElementById('barcodeScanInput').value = "";
+        document.getElementById('nameSearchInput').value = "";
+        document.getElementById('billPrice').value = "";
+        document.getElementById('billQty').value = 1;
+        renderBillTable();
+    }
+
+    function saveAndProcessBill(actionType) {
+        if(currentBillItems.length === 0) {
+            alert("बिल में कोई सामान नहीं है!");
+            return;
+        }
+
+        const custName = document.getElementById('custName').value.trim() || "सामान्य ग्राहक";
+        const custPhone = document.getElementById('custPhone').value.trim() || "N/A";
+        let grandTotal = currentBillItems.reduce((sum, item) => sum + item.total, 0);
+        const billNote = document.getElementById('customBillNoteText').value;
+
+        if(editingSaleIndex !== null) {
+            salesHistory.splice(editingSaleIndex, 1);
+            editingSaleIndex = null;
+        }
+
+        let saleRecord = {
+            id: 'SALE_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            date: new Date().toLocaleString(),
+            custName: custName,
+            custPhone: custPhone,
+            items: [...currentBillItems],
+            total: grandTotal,
+            note: billNote
+        };
+
+        salesHistory.unshift(saleRecord);
+        customerPurchaseHistory.unshift(saleRecord);
+
+        localStorage.setItem('salesHistoryList', JSON.stringify(salesHistory));
+        localStorage.setItem('customerPurchaseHistoryList', JSON.stringify(customerPurchaseHistory));
+
+        if(custPhone !== "N/A") {
+            let existingCust = customerMasterList.find(c => c.phone === custPhone);
+            if(!existingCust) {
+                customerMasterList.push({ name: custName, phone: custPhone });
+                localStorage.setItem('customerMasterList', JSON.stringify(customerMasterList));
+            }
+        }
+
+        if(actionType === 'print') {
+            document.getElementById('receiptShopName').innerText = shopSettings.shopName;
+            document.getElementById('receiptDate').innerText = saleRecord.date;
+            document.getElementById('receiptCustName').innerText = custName;
+            document.getElementById('receiptCustPhone').innerText = custPhone;
+            document.getElementById('receiptGrandTotal').innerText = grandTotal.toFixed(2);
+            document.getElementById('receiptCustomNote').innerText = billNote;
+
+            let rBody = document.getElementById('receiptItemsBody');
+            rBody.innerHTML = "";
+            currentBillItems.forEach(it => {
+                rBody.innerHTML += `<tr><td style="padding:4px;">${it.name}</td><td style="text-align:center; padding:4px;">${it.qty} ${it.unit}</td><td style="text-align:right; padding:4px;">${it.total.toFixed(2)}</td></tr>`;
+            });
+            window.print();
+        } else if(actionType === 'whatsapp') {
+            let msg = `🛍️ *${shopSettings.shopName}* 🛍️\nदिनांक: ${saleRecord.date}\nग्राहक: ${custName}\n--------------------------\n`;
+            currentBillItems.forEach(it => {
+                msg += `${it.name} - ${it.qty} ${it.unit} x ₹${it.price} = ₹${it.total.toFixed(2)}\n`;
+            });
+            msg += `--------------------------\n*कुल योग: ₹${grandTotal.toFixed(2)}*\n${billNote}`;
+            let waUrl = `https://api.whatsapp.com/send?phone=${custPhone !== 'N/A' ? custPhone : ''}&text=${encodeURIComponent(msg)}`;
+            window.open(waUrl, '_blank');
+        } else if(actionType === 'message') {
+            let msg = `🛍️ ${shopSettings.shopName} 🛍️\nदिनांक: ${saleRecord.date}\nग्राहक: ${custName}\n--------------------------\n`;
+            currentBillItems.forEach(it => {
+                msg += `${it.name} - ${it.qty} ${it.unit} x ₹${it.price} = ₹${it.total.toFixed(2)}\n`;
+            });
+            msg += `--------------------------\nकुल योग: ₹${grandTotal.toFixed(2)}\n${billNote}`;
+            let smsUrl = `sms:${custPhone !== 'N/A' ? custPhone : ''}?body=${encodeURIComponent(msg)}`;
+            window.open(smsUrl, '_blank');
+        }
+
+        alert("बिल सफलतापूर्वक सहेज लिया गया!");
+        refreshBillingCounter();
+        updateProductDropdowns();
+    }
+
+    function renderProductQtySumTable() {
+        const tbody = document.getElementById('productQtySumTableBody');
+        const searchVal = document.getElementById('searchProductSumInput').value.toLowerCase();
+        tbody.innerHTML = "";
+
+        let summaryMap = {};
+        let grandSumPrice = 0;
+
+        salesHistory.forEach((sale, saleIndex) => {
+            sale.items.forEach((item, itemIndex) => {
+                let key = item.name.trim().toLowerCase();
+                if(!summaryMap[key]) {
+                    summaryMap[key] = {
+                        name: item.name,
+                        totalQty: 0,
+                        unit: item.unit || "Piece",
+                        totalPrice: 0,
+                        refs: []
+                    };
+                }
+                summaryMap[key].totalQty += parseFloat(item.qty) || 0;
+                summaryMap[key].totalPrice += parseFloat(item.total) || 0;
+                summaryMap[key].refs.push({ saleIndex, itemIndex });
+            });
+        });
+
+        let summaryKeys = Object.keys(summaryMap);
+        summaryKeys.forEach(key => {
+            let item = summaryMap[key];
+            if(item.name.toLowerCase().includes(searchVal)) {
+                grandSumPrice += item.totalPrice;
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="text-align:left; font-weight:bold;">${item.name}</td>
+                        <td style="color:var(--primary); font-weight:bold;">${item.totalQty.toFixed(3)}</td>
+                        <td>${item.unit}</td>
+                        <td><b>₹${item.totalPrice.toFixed(2)}</b></td>
+                        <td><button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteProductSumItem('${key}')">🗑️ डिलीट</button></td>
+                    </tr>
+                `;
+            }
+        });
+
+        document.getElementById('sumTotalGrandPrice').innerText = grandSumPrice.toFixed(2);
+    }
+
+    function deleteProductSumItem(productKey) {
+        if(confirm(`क्या आप इस उत्पाद के सभी बिक्री रिकॉर्ड्स हटाना चाहते हैं?`)) {
+            salesHistory.forEach(sale => {
+                sale.items = sale.items.filter(item => item.name.trim().toLowerCase() !== productKey);
+            });
+            salesHistory = salesHistory.filter(sale => sale.items.length > 0);
+            
+            localStorage.setItem('salesHistoryList', JSON.stringify(salesHistory));
+            renderProductQtySumTable();
+            renderSellingReport();
+            alert("उत्पाद का डेटा हटा दिया गया है!");
+        }
+    }
+
+    function exportProductQtySumToExcel() {
+        let csv = "उत्पाद का नाम,कुल मात्रा,इकाई,कुल मूल्य (Rs)\n";
+        let summaryMap = {};
+        salesHistory.forEach(sale => {
+            sale.items.forEach(item => {
+                let key = item.name.trim().toLowerCase();
+                if(!summaryMap[key]) {
+                    summaryMap[key] = { name: item.name, totalQty: 0, unit: item.unit || "Piece", totalPrice: 0 };
+                }
+                summaryMap[key].totalQty += parseFloat(item.qty) || 0;
+                summaryMap[key].totalPrice += parseFloat(item.total) || 0;
+            });
+        });
+        Object.values(summaryMap).forEach(item => {
+            csv += `"${item.name}",${item.totalQty.toFixed(3)},"${item.unit}",${item.totalPrice.toFixed(2)}\n`;
+        });
+        let blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Product_Quantity_Summary.csv";
+        link.click();
+    }
+
+    function renderCategoryManager() {
+        const container = document.getElementById('categoryTagsContainer');
+        if(!container) return;
+        container.innerHTML = "";
+
+        shopSettings.categories.forEach((cat, index) => {
+            container.innerHTML += `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #f3f4f6; padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <span style="font-weight: 600; color: var(--text-main);">${cat}</span>
+                    <button class="btn btn-danger" style="width: auto; padding: 4px 10px; font-size: 12px;" onclick="deleteCategory(${index})">🗑️ डिलीट करें</button>
+                </div>
+            `;
+        });
+    }
+
+    function addNewCategory() {
+        const input = document.getElementById('newCategoryInput');
+        const catName = input.value.trim();
+        if(!catName) {
+            alert("कृपया कैटेगरी का नाम दर्ज करें!");
+            return;
+        }
+        if(shopSettings.categories.includes(catName)) {
+            alert("यह कैटेगरी पहले से मौजूद है!");
+            return;
+        }
+        shopSettings.categories.push(catName);
+        localStorage.setItem('shopSettings', JSON.stringify(shopSettings));
+        input.value = "";
+        renderCategoryManager();
+        refreshAllDropdowns();
+        alert("कैटेगरी सफलतापूर्वक जोड़ दी गई!");
+    }
+
+    function deleteCategory(index) {
+        let catToDelete = shopSettings.categories[index];
+        if(confirm(`क्या आप "${catToDelete}" कैटेगरी को डिलीट करना चाहते हैं?`)) {
+            shopSettings.categories.splice(index, 1);
+            localStorage.setItem('shopSettings', JSON.stringify(shopSettings));
+            renderCategoryManager();
+            refreshAllDropdowns();
+            alert("कैटेगरी डिलीट कर दी गई है!");
+        }
+    }
+
+    function handleBarcodeSearchInput() {
+        const val = document.getElementById('barcodeScanInput').value.trim();
+        if(!val) return;
+        let index = productList.findIndex(p => p.barcode && p.barcode.toString().toLowerCase() === val.toLowerCase());
+        if(index !== -1) {
+            document.getElementById('billProductSelect').value = index;
+            fillBillDetails();
+        }
+    }
+
+    function handleBarcodeSearchKey(e) {
+        if(e.key === 'Enter') handleBarcodeSearchInput();
+    }
+
+    function handleNameSearchInput() {
+        const q = document.getElementById('nameSearchInput').value.toLowerCase();
+        const box = document.getElementById('nameSuggestionsBox');
+        box.innerHTML = "";
+        if(!q) { box.classList.add('hidden'); return; }
+
+        let matches = productList.filter(p => p.name.toLowerCase().includes(q));
+        if(matches.length > 0) {
+            box.classList.remove('hidden');
+            matches.forEach(item => {
+                let origIndex = productList.indexOf(item);
+                box.innerHTML += `<div class="suggestion-item" onclick="selectSuggestedProduct(${origIndex})">${item.name} (₹${item.price})</div>`;
+            });
+        } else {
+            box.classList.add('hidden');
+        }
+    }
+
+    function selectSuggestedProduct(index) {
+        document.getElementById('billProductSelect').value = index;
+        fillBillDetails();
+        document.getElementById('nameSuggestionsBox').classList.add('hidden');
+        document.getElementById('nameSearchInput').value = productList[index].name;
+    }
+
+    function handleCustNameSearch() {
+        const q = document.getElementById('custName').value.toLowerCase().trim();
+        const box = document.getElementById('custNameSuggestionsBox');
+        box.innerHTML = "";
+        if(!q) { box.classList.add('hidden'); return; }
+
+        let matches = customerMasterList.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q));
+        if(matches.length > 0) {
+            box.classList.remove('hidden');
+            matches.forEach(c => {
+                box.innerHTML += `<div class="suggestion-item" onclick="selectCustomerSuggestion('${c.name}', '${c.phone}')">${c.name} - ${c.phone}</div>`;
+            });
+        } else {
+            box.classList.add('hidden');
+        }
+    }
+
+    function handleCustPhoneSearch() {
+        const q = document.getElementById('custPhone').value.toLowerCase().trim();
+        const box = document.getElementById('custPhoneSuggestionsBox');
+        box.innerHTML = "";
+        if(!q) { box.classList.add('hidden'); return; }
+
+        let matches = customerMasterList.filter(c => c.phone.includes(q) || c.name.toLowerCase().includes(q));
+        if(matches.length > 0) {
+            box.classList.remove('hidden');
+            matches.forEach(c => {
+                box.innerHTML += `<div class="suggestion-item" onclick="selectCustomerSuggestion('${c.name}', '${c.phone}')">${c.name} - ${c.phone}</div>`;
+            });
+        } else {
+            box.classList.add('hidden');
+        }
+    }
+
+    function selectCustomerSuggestion(name, phone) {
+        document.getElementById('custName').value = name;
+        document.getElementById('custPhone').value = phone;
+        document.getElementById('custNameSuggestionsBox').classList.add('hidden');
+        document.getElementById('custPhoneSuggestionsBox').classList.add('hidden');
+    }
+
+    function saveSingleProduct() {
+        const barcode = document.getElementById('newProdBarcode').value.trim();
+        const name = document.getElementById('newProdName').value.trim();
+        const cost = parseFloat(document.getElementById('newProdCost').value) || 0;
+        const price = parseFloat(document.getElementById('newProdPrice').value) || 0;
+        const qty = parseFloat(document.getElementById('newProdQty').value) || 0;
+        const unit = document.getElementById('newProdUnit').value;
+        const category = document.getElementById('newProdCategory').value;
+
+        if(!name || !price) {
+            alert("कृपया उत्पाद का नाम और बिक्री मूल्य दर्ज करें!");
+            return;
+        }
+
+        productList.push({ barcode, name, cost, price, qty, unit, category });
+        localStorage.setItem('masterProductList', JSON.stringify(productList));
+        alert("उत्पाद सफलतापूर्वक सेव हो गया!");
+        document.getElementById('newProdBarcode').value = "";
+        document.getElementById('newProdName').value = "";
+        document.getElementById('newProdCost').value = "";
+        document.getElementById('newProdPrice').value = "";
+        document.getElementById('newProdQty').value = 1;
+        updateProductDropdowns();
+    }
+
+    function renderInventoryTable() {
+        const tbody = document.getElementById('inventoryTableBody');
+        const q = document.getElementById('inventorySearchInput').value.toLowerCase();
+        tbody.innerHTML = "";
+        productList.forEach((item, index) => {
+            if(item.name.toLowerCase().includes(q) || (item.barcode && item.barcode.toLowerCase().includes(q))) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><input type="text" id="inv_barcode_${index}" value="${item.barcode || ''}" style="margin:0; width:90px;"></td>
+                        <td><input type="text" id="inv_name_${index}" value="${item.name}" style="margin:0;"></td>
+                        <td><input type="number" id="inv_cost_${index}" value="${item.cost}" style="margin:0; width:70px;"></td>
+                        <td><input type="number" id="inv_price_${index}" value="${item.price}" style="margin:0; width:70px;"></td>
+                        <td><input type="number" id="inv_qty_${index}" value="${item.qty}" step="0.001" style="margin:0; width:70px;"></td>
+                        <td>
+                            <select id="inv_unit_${index}" style="margin:0; padding:4px;">
+                                <option value="Piece" ${item.unit === 'Piece' ? 'selected' : ''}>Piece</option>
+                                <option value="Kg" ${item.unit === 'Kg' ? 'selected' : ''}>Kg</option>
+                                <option value="Packet" ${item.unit === 'Packet' ? 'selected' : ''}>Packet</option>
+                                <option value="Gram" ${item.unit === 'Gram' ? 'selected' : ''}>Gram</option>
+                                <option value="Liter" ${item.unit === 'Liter' ? 'selected' : ''}>Liter</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button class="btn btn-success" style="padding:4px 8px; font-size:12px; margin-bottom:4px;" onclick="updateInventoryItem(${index})">💾</button>
+                            <button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteInventoryItem(${index})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    function updateInventoryItem(index) {
+        productList[index].barcode = document.getElementById(`inv_barcode_${index}`).value.trim();
+        productList[index].name = document.getElementById(`inv_name_${index}`).value;
+        productList[index].cost = parseFloat(document.getElementById(`inv_cost_${index}`).value) || 0;
+        productList[index].price = parseFloat(document.getElementById(`inv_price_${index}`).value) || 0;
+        productList[index].qty = parseFloat(document.getElementById(`inv_qty_${index}`).value) || 0;
+        productList[index].unit = document.getElementById(`inv_unit_${index}`).value;
+        localStorage.setItem('masterProductList', JSON.stringify(productList));
+        updateProductDropdowns();
+        alert("अपडेट सहेज लिया गया!");
+    }
+
+    function saveAllInventoryChanges() {
+        productList.forEach((item, index) => {
+            if(document.getElementById(`inv_name_${index}`)) {
+                item.barcode = document.getElementById(`inv_barcode_${index}`).value.trim();
+                item.name = document.getElementById(`inv_name_${index}`).value;
+                item.cost = parseFloat(document.getElementById(`inv_cost_${index}`).value) || 0;
+                item.price = parseFloat(document.getElementById(`inv_price_${index}`).value) || 0;
+                item.qty = parseFloat(document.getElementById(`inv_qty_${index}`).value) || 0;
+                item.unit = document.getElementById(`inv_unit_${index}`).value;
+            }
+        });
+        localStorage.setItem('masterProductList', JSON.stringify(productList));
+        updateProductDropdowns();
+        alert("सभी परिवर्तन सहेज लिए गए!");
+        renderInventoryTable();
+    }
+
+    function deleteInventoryItem(index) {
+        if(confirm("क्या आप वाकई इस उत्पाद को डिलीट करना चाहते हैं?")) {
+            productList.splice(index, 1);
+            localStorage.setItem('masterProductList', JSON.stringify(productList));
+            renderInventoryTable();
+            updateProductDropdowns();
+        }
+    }
+
+    function deleteAllProducts() {
+        if(confirm("चेतावनी: क्या आप वाकई सभी उत्पादों को डिलीट करना चाहते हैं? यह क्रिया वापस नहीं लाई जा सकती!")) {
+            productList = [];
+            localStorage.setItem('masterProductList', JSON.stringify(productList));
+            renderInventoryTable();
+            updateProductDropdowns();
+            alert("सभी प्रोडक्ट्स डिलीट कर दिए गए हैं!");
+        }
+    }
+
+    function renderCustomerDirectory() {
+        const tbody = document.getElementById('customerTableBody');
+        const q = document.getElementById('searchCustomerInput').value.toLowerCase();
+        tbody.innerHTML = "";
+        customerMasterList.forEach(c => {
+            if(c.name.toLowerCase().includes(q) || c.phone.includes(q)) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight:bold;">${c.name}</td>
+                        <td>${c.phone}</td>
+                        <td><a href="https://api.whatsapp.com/send?phone=${c.phone}" target="_blank" class="btn btn-whatsapp" style="padding:6px 10px; font-size:12px;">WhatsApp</a></td>
+                        <td><a href="tel:${c.phone}" class="btn btn-call" style="padding:6px 10px; font-size:12px;">कॉल करें</a></td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    function renderCustomerPurchaseHistory() {
+        const tbody = document.getElementById('customerPurchaseHistoryTableBody');
+        const q = document.getElementById('searchCustHistoryInput').value.toLowerCase();
+        tbody.innerHTML = "";
+
+        const activeSaleIds = new Set(salesHistory.map(s => s.id));
+
+        customerPurchaseHistory.forEach((sale, index) => {
+            if(sale.custName.toLowerCase().includes(q) || sale.custPhone.includes(q)) {
+                let itemsDesc = sale.items.map(i => `${i.name} (${i.qty} ${i.unit})`).join(', ');
+                let isDeletedFromSales = !activeSaleIds.has(sale.id);
+                let rowStyle = isDeletedFromSales ? "background-color: #fee2e2; color: #b91c1c;" : "";
+
+                tbody.innerHTML += `
+                    <tr style="${rowStyle}">
+                        <td>${sale.date}</td>
+                        <td style="font-weight:bold;">${sale.custName}</td>
+                        <td>${sale.custPhone}</td>
+                        <td style="text-align:left; font-size:13px;">${itemsDesc} ${isDeletedFromSales ? '<br><small><b>(सेलिंग रिपोर्ट से हटाया गया)</b></small>' : ''}</td>
+                        <td><b>₹${sale.total.toFixed(2)}</b></td>
+                        <td>
+                            <button class="btn btn-primary" style="padding:4px 8px; font-size:12px; margin-bottom:4px;" onclick="editSaleBill(${index})">✏️ एडिट</button>
+                            <button class="btn btn-danger" style="padding:4px 8px; font-size:12px; margin-bottom:4px;" onclick="deleteCustomerHistoryRecord(${index})">🗑️ डिलीट</button>
+                            <button class="btn btn-whatsapp" style="padding:4px 8px; font-size:12px; margin-bottom:4px;" onclick="reWhatsAppBillHistory(${index})">🟢 WhatsApp</button>
+                            <button class="btn btn-warning" style="padding:4px 8px; font-size:12px;" onclick="reMessageBillHistory(${index})">💬 मैसेज</button>
+                        </td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    function deleteCustomerHistoryRecord(index) {
+        if(confirm("क्या आप इस ग्राहक इतिहास रिकॉर्ड को हमेशा के लिए हटाना चाहते हैं?")) {
+            customerPurchaseHistory.splice(index, 1);
+            localStorage.setItem('customerPurchaseHistoryList', JSON.stringify(customerPurchaseHistory));
+            renderCustomerPurchaseHistory();
+        }
+    }
+
+    function editSaleBill(index) {
+        let sale = customerPurchaseHistory[index];
+        editingSaleIndex = salesHistory.findIndex(s => s.id === sale.id);
+        currentBillItems = JSON.parse(JSON.stringify(sale.items));
+        document.getElementById('custName').value = sale.custName;
+        document.getElementById('custPhone').value = sale.custPhone;
+        document.getElementById('customBillNoteText').value = sale.note || shopSettings.defaultBillNote;
+        switchTab('billingTab');
+        renderBillTable();
+        alert("यह पुराना बिल काउंटर में लोड कर दिया गया है। बदलाव करके दोबारा 'सेव' कर सकते हैं।");
+    }
+
+    function reWhatsAppBillHistory(index) {
+        let sale = customerPurchaseHistory[index];
+        let msg = `🛍️ *${shopSettings.shopName}* 🛍️\nदिनांक: ${sale.date}\nग्राहक: ${sale.custName}\n--------------------------\n`;
+        sale.items.forEach(it => {
+            msg += `${it.name} - ${it.qty} ${it.unit} x ₹${it.price} = ₹${it.total.toFixed(2)}\n`;
+        });
+        msg += `--------------------------\n*कुल योग: ₹${sale.total.toFixed(2)}*\n${sale.note || ''}`;
+        let waUrl = `https://api.whatsapp.com/send?phone=${sale.custPhone !== 'N/A' ? sale.custPhone : ''}&text=${encodeURIComponent(msg)}`;
+        window.open(waUrl, '_blank');
+    }
+
+    function reMessageBillHistory(index) {
+        let sale = customerPurchaseHistory[index];
+        let msg = `🛍️ ${shopSettings.shopName} 🛍️\nदिनांक: ${sale.date}\nग्राहक: ${sale.custName}\n--------------------------\n`;
+        sale.items.forEach(it => {
+            msg += `${it.name} - ${it.qty} ${it.unit} x ₹${it.price} = ₹${it.total.toFixed(2)}\n`;
+        });
+        msg += `--------------------------\nकुल योग: ₹${sale.total.toFixed(2)}\n${sale.note || ''}`;
+        let smsUrl = `sms:${sale.custPhone !== 'N/A' ? sale.custPhone : ''}?body=${encodeURIComponent(msg)}`;
+        window.open(smsUrl, '_blank');
+    }
+
+    function renderSellingReport() {
+        const tbody = document.getElementById('salesReportTableBody');
+        tbody.innerHTML = "";
+        salesHistory.forEach((sale, index) => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${sale.date}</td>
+                    <td>${sale.custName}</td>
+                    <td>${sale.custPhone}</td>
+                    <td><b>₹${sale.total.toFixed(2)}</b></td>
+                    <td><button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteSaleRecord(${index})">🗑️ डिलीट</button></td>
+                </tr>
+            `;
+        });
+    }
+
+    function deleteSaleRecord(index) {
+        if(confirm("क्या आप इस रिपोर्ट को डिलीट करना चाहते हैं?")) {
+            salesHistory.splice(index, 1);
+            localStorage.setItem('salesHistoryList', JSON.stringify(salesHistory));
+            renderSellingReport();
+            alert("रिपोर्ट डिलीट कर दी गई है!");
+        }
+    }
+
+    function clearSalesHistory() {
+        if(confirm("क्या आप सारी सेलिंग रिपोर्ट्स साफ़ करना चाहते हैं?")) {
+            salesHistory = [];
+            localStorage.setItem('salesHistoryList', JSON.stringify(salesHistory));
+            renderSellingReport();
+            alert("सभी रिपोर्ट्स साफ़ कर दी गई हैं!");
+        }
+    }
+
+    function renderShortStockTable() {
+        const tbody = document.getElementById('shortStockTableBody');
+        tbody.innerHTML = "";
+        productList.forEach(item => {
+            if(item.qty < 5) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.barcode || 'N/A'}</td>
+                        <td style="font-weight:bold;">${item.name}</td>
+                        <td style="color:var(--danger); font-weight:bold;">${item.qty} ${item.unit}</td>
+                        <td>₹${item.price}</td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    function renderQuickRateTable() {
+        const tbody = document.getElementById('quickRateTableBody');
+        const q = document.getElementById('quickRateSearchInput').value.toLowerCase();
+        tbody.innerHTML = "";
+        productList.forEach((item, index) => {
+            if(item.name.toLowerCase().includes(q)) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.barcode || 'N/A'}</td>
+                        <td style="text-align:left;">${item.name}</td>
+                        <td><input type="number" id="q_cost_${index}" value="${item.cost}" style="margin:0; width:80px;"></td>
+                        <td><input type="number" id="q_price_${index}" value="${item.price}" style="margin:0; width:80px;"></td>
+                        <td><button class="btn btn-success" style="padding:4px 8px; font-size:12px;" onclick="saveQuickRate(${index})">💾 सेव</button></td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    function saveQuickRate(index) {
+        productList[index].cost = parseFloat(document.getElementById(`q_cost_${index}`).value) || 0;
+        productList[index].price = parseFloat(document.getElementById(`q_price_${index}`).value) || 0;
+        localStorage.setItem('masterProductList', JSON.stringify(productList));
+        alert("रेट सेव हो गया!");
+    }
+
+    function saveAllQuickRates() {
+        productList.forEach((item, index) => {
+            if(document.getElementById(`q_price_${index}`)) {
+                item.cost = parseFloat(document.getElementById(`q_cost_${index}`).value) || 0;
+                item.price = parseFloat(document.getElementById(`q_price_${index}`).value) || 0;
+            }
+        });
+        localStorage.setItem('masterProductList', JSON.stringify(productList));
+        alert("सभी रेट्स सेव कर दिए गए!");
+    }
+
+    function renderProfitReport() {
+        const tbody = document.getElementById('profitReportTableBody');
+        tbody.innerHTML = "";
+        let totalNetProfit = 0;
+        let profitMap = {};
+
+        salesHistory.forEach(sale => {
+            sale.items.forEach(it => {
+                let costPrice = 0;
+                if(it.productIndex !== null && productList[it.productIndex]) {
+                    costPrice = productList[it.productIndex].cost || 0;
+                }
+                let itemProfit = (it.price - costPrice) * it.qty;
+                totalNetProfit += itemProfit;
+
+                let key = it.name.trim().toLowerCase();
+                if(!profitMap[key]) {
+                    profitMap[key] = { name: it.name, qty: 0, sale: 0, profit: 0 };
+                }
+                profitMap[key].qty += it.qty;
+                profitMap[key].sale += it.total;
+                profitMap[key].profit += itemProfit;
+            });
+        });
+
+        document.getElementById('totalProfitDisplay').innerText = `₹${totalNetProfit.toFixed(2)}`;
+
+        Object.keys(profitMap).forEach(key => {
+            let p = profitMap[key];
+            tbody.innerHTML += `
+                <tr>
+                    <td style="text-align:left;">${p.name}</td>
+                    <td>${p.qty.toFixed(3)}</td>
+                    <td>₹${p.sale.toFixed(2)}</td>
+                    <td style="color:var(--success); font-weight:bold;">₹${p.profit.toFixed(2)}</td>
+                    <td><button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="deleteProfitItem('${key}')">🗑️ डिलीट</button></td>
+                </tr>
+            `;
+        });
+    }
+
+    function deleteProfitItem(productKey) {
+        if(confirm(`क्या आप इस उत्पाद का लाभ रिकॉर्ड हटाना चाहते हैं?`)) {
+            salesHistory.forEach(sale => {
+                sale.items = sale.items.filter(item => item.name.trim().toLowerCase() !== productKey);
+            });
+            salesHistory = salesHistory.filter(sale => sale.items.length > 0);
+            
+            localStorage.setItem('salesHistoryList', JSON.stringify(salesHistory));
+            renderProfitReport();
+            renderSellingReport();
+            alert("उत्पाद का लाभ रिकॉर्ड हटा दिया गया है!");
+        }
+    }
+
+    function saveSettingsData() {
+        shopSettings.shopName = document.getElementById('settingShopName').value.trim() || "किराना स्मार्ट स्टोर";
+        shopSettings.defaultBillNote = document.getElementById('settingDefaultBillNote').value;
+        shopSettings.pageSize = document.getElementById('settingPageSize').value;
+        localStorage.setItem('shopSettings', JSON.stringify(shopSettings));
+        document.getElementById('shopTitleHeader').innerText = "🛒 " + shopSettings.shopName;
+        document.getElementById('customBillNoteText').value = shopSettings.defaultBillNote;
+        alert("सेटिंग्स सफलतापूर्वक सहेज ली गईं!");
+    }
+
+    function exportProductsToExcel() {
+        let csv = "Barcode,Name,PurchasePrice,SellingPrice,StockQty,Unit,Category\n";
+        productList.forEach(p => {
+            csv += `"${p.barcode || ''}","${p.name}",${p.cost || 0},${p.price || 0},${p.qty || 0},"${p.unit || 'Piece'}","${p.category || 'अन्य'}"\n`;
+        });
+        let blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Inventory_Stock_List.csv";
+        link.click();
+    }
+
+    function exportSellingReportToExcel() {
+        let csv = "DateTime,CustomerName,CustomerPhone,TotalAmount\n";
+        salesHistory.forEach(s => {
+            csv += `"${s.date}","${s.custName}","${s.custPhone}",${s.total}\n`;
+        });
+        let blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Sales_Report.csv";
+        link.click();
+    }
+
+    function exportCustomerPurchaseHistoryToExcel() {
+        let csv = "DateTime,CustomerName,CustomerPhone,ItemsDetail,TotalAmount\n";
+        customerPurchaseHistory.forEach(s => {
+            let itemsDesc = s.items.map(i => `${i.name} (${i.qty} ${i.unit})`).join(' | ');
+            csv += `"${s.date}","${s.custName}","${s.custPhone}","${itemsDesc}",${s.total}\n`;
+        });
+        let blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Customer_Purchase_History.csv";
+        link.click();
+    }
+
+    function exportShortStockToExcel() {
+        let csv = "Barcode,Name,Stock,SellingPrice\n";
+        productList.forEach(p => {
+            if(p.qty < 5) {
+                csv += `"${p.barcode || ''}","${p.name}",${p.qty},${p.price}\n`;
+            }
+        });
+        let blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Short_Stock_List.csv";
+        link.click();
+    }
+
+    function exportQuickRateToExcel() {
+        let csv = "Barcode,Name,PurchasePrice,SellingPrice\n";
+        productList.forEach(p => {
+            csv += `"${p.barcode || ''}","${p.name}",${p.cost},${p.price}\n`;
+        });
+        let blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Quick_Rate_List.csv";
+        link.click();
+    }
+
+    function exportProfitReportToExcel() {
+        let csv = "ProductName,TotalQtySold,TotalSale,NetProfit\n";
+        let profitMap = {};
+        salesHistory.forEach(sale => {
+            sale.items.forEach(it => {
+                let costPrice = 0;
+                if(it.productIndex !== null && productList[it.productIndex]) {
+                    costPrice = productList[it.productIndex].cost || 0;
+                }
+                let itemProfit = (it.price - costPrice) * it.qty;
+                let key = it.name.trim().toLowerCase();
+                if(!profitMap[key]) { profitMap[key] = { name: it.name, qty: 0, sale: 0, profit: 0 }; }
+                profitMap[key].qty += it.qty;
+                profitMap[key].sale += it.total;
+                profitMap[key].profit += itemProfit;
+            });
+        });
+        Object.keys(profitMap).forEach(key => {
+            let p = profitMap[key];
+            csv += `"${p.name}",${p.qty},${p.sale},${p.profit}\n`;
+        });
+        let blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Profit_Report.csv";
+        link.click();
+    }
+
+    function exportDataJSON() {
+        let backupObj = { shopSettings, productList, salesHistory, customerMasterList, customerPurchaseHistory };
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj));
+        let downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "SmartKirana_Backup_" + new Date().toISOString().slice(0,10) + ".json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    function importDataJSON(event) {
+        let file = event.target.files[0];
+        if(!file) return;
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                let data = JSON.parse(e.target.result);
+                if(data.shopSettings) shopSettings = data.shopSettings;
+                if(data.productList) productList = data.productList;
+                if(data.salesHistory) salesHistory = data.salesHistory;
+                if(data.customerMasterList) customerMasterList = data.customerMasterList;
+                if(data.customerPurchaseHistory) customerPurchaseHistory = data.customerPurchaseHistory;
+
+                localStorage.setItem('shopSettings', JSON.stringify(shopSettings));
+                localStorage.setItem('masterProductList', JSON.stringify(productList));
+                localStorage.setItem('salesHistoryList', JSON.stringify(salesHistory));
+                localStorage.setItem('customerMasterList', JSON.stringify(customerMasterList));
+                localStorage.setItem('customerPurchaseHistoryList', JSON.stringify(customerPurchaseHistory));
+
+                alert("बैकअप डेटा सफलतापूर्वक रीस्टोर (Restore) हो गया!");
+                location.reload();
+            } catch(err) {
+                alert("अमान्य JSON फाइल!");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    let html5QrCode;
+    let activeInputId = null;
+
+    function startCameraScanner(inputId) {
+        activeInputId = inputId;
+        document.getElementById('scanner-container').style.display = 'block';
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 150 } },
+            qrCodeMessage => {
+                document.getElementById(activeInputId).value = qrCodeMessage;
+                stopCameraScanner();
+                if(activeInputId === 'barcodeScanInput') handleBarcodeSearchInput();
+            },
+            errorMessage => {}
+        ).catch(err => {
+            alert("कैमरा शुरू करने में त्रुटि: " + err);
+        });
+    }
+
+    function stopCameraScanner() {
+        if(html5QrCode) {
+            html5QrCode.stop().then(() => {
+                document.getElementById('scanner-container').style.display = 'none';
+            }).catch(err => {
+                document.getElementById('scanner-container').style.display = 'none';
+            });
+        } else {
+            document.getElementById('scanner-container').style.display = 'none';
+        }
+    }
+
+    function processBulkUpload() {
+        const text = document.getElementById('bulkDataInput').value.trim();
+        if(!text) {
+            alert("कृपया डेटा दर्ज करें!");
+            return;
+        }
+        let lines = text.split('\n');
+        let count = 0;
+        lines.forEach(line => {
+            let parts = line.split(',').map(s => s.trim());
+            if(parts.length >= 2) {
+                productList.push({
+                    barcode: parts[0] || "",
+                    name: parts[1] || "आइटम",
+                    cost: parseFloat(parts[2]) || 0,
+                    price: parseFloat(parts[3]) || 0,
+                    unit: parts[4] || "Piece",
+                    category: parts[5] || "अन्य",
+                    qty: parseFloat(parts[6]) || 1
+                });
+                count++;
+            }
+        });
+        localStorage.setItem('masterProductList', JSON.stringify(productList));
+        alert(`${count} प्रोडक्ट्स सफलतापर्वक इम्पोर्ट हो गए!`);
+        document.getElementById('bulkDataInput').value = "";
+        updateProductDropdowns();
+    }
+
+    function handleExcelFileUpload(event) {
+        let file = event.target.files[0];
+        if(!file) return;
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('bulkDataInput').value = e.target.result;
+        };
+        reader.readAsText(file);
+    }
+</script>
+</body>
+</html>
